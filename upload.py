@@ -45,11 +45,12 @@ def uploads():
             fn = time.strftime('%Y%m%d%H%M%S')
             fn = fn + '_%d' % random.randint(0, 10000)
             fn_new = fn + ext
+            file_name = fn_new
             # 保存图片
             file.save(os.path.join(basepath, app.config['UPLOAD_FOLDER'], file_name))
             # windows
-            os.rename(basepath + '\\' + UPLOAD_FOLDER + '\\' + file_name,
-                      basepath + '\\' + UPLOAD_FOLDER + '\\' + fn_new)
+            #os.rename(basepath + '\\' + UPLOAD_FOLDER + '\\' + file_name,
+            #          basepath + '\\' + UPLOAD_FOLDER + '\\' + fn_new)
 
             # Linux
             # os.rename(basepath + '/' + UPLOAD_FOLDER + '/' + file_name,
