@@ -3,7 +3,6 @@
 # 开发时间 : 2021/7/5 15:50
 # 文件名称 : upload.py
 
-
 import flask
 from flask import Flask, Response, request, render_template
 from werkzeug.utils import secure_filename
@@ -13,10 +12,10 @@ import random
 import platform
 
 app = Flask(__name__)
-host = '127.0.0.1:5000'
+host = '127.0.0.1:8080'
 
 # 设置图片保存文件夹
-# UPLOAD_FOLDER = '/data/www/upload/image/complaint/'
+# UPLOAD_FOLDER = 'xxxxxxx'
 basepath = os.path.dirname(__file__)
 UPLOAD_FOLDER = 'image'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -72,11 +71,11 @@ def uploads():
 @app.route("/image/<imageId>")
 def get_frame(imageId):
     # 图片上传保存的路径
-    with open(r'D:/study/1/test/upload/image/{}'.format(imageId), 'rb') as f:
+    with open(r'xx/xxx/xx/xx/{}'.format(imageId), 'rb') as f:
         image = f.read()
         resp = Response(image, mimetype="image/jpg")
         return resp
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
