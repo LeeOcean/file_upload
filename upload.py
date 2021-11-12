@@ -4,21 +4,28 @@
 # 文件名称 : upload.py
 
 
+from gevent import monkey
+from gevent.pywsgi import WSGIServer
+
+# 下面这句不加也能启动服务，但是你会发现Flask还是单线程，在一个请求未返回时，其他请求也会阻塞，所以请添加这句
+monkey.patch_all()
 import flask
 from flask import Flask, Response, request, render_template
 from werkzeug.utils import secure_filename
+from gevent import pywsgi
+from wsgiref.simple_server import make_server
 import os
 import time
 import random
 import platform
 
 app = Flask(__name__)
-host = '127.0.0.1:5000'
+host = 'http://127.0.0.1'
 
 # 设置图片保存文件夹
-# UPLOAD_FOLDER = '/data/www/upload/image/complaint/'
+UPLOAD_FOLDER = '/data/server/image/complaint/'
 basepath = os.path.dirname(__file__)
-UPLOAD_FOLDER = 'image'
+# UPLOAD_FOLDER = 'image'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['JSON_SORT_KEYS'] = False
 
@@ -48,7 +55,7 @@ def uploads():
             fn_new = fn + ext
             file_name = fn_new
             # 保存图片
-            file.save(os.path.join(basepath, app.config['UPLOAD_FOLDER'], file_name))
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
             # windows
             # os.rename(basepath + '\\' + UPLOAD_FOLDER + '\\' + file_name,
             #           basepath + '\\' + UPLOAD_FOLDER + '\\' + fn_new)
@@ -59,29 +66,69 @@ def uploads():
             # upload_path = os.path.join(basepath, 'image', file_name)
             # file.save(upload_path)
             path = fn_new
-            result = {"code": 200,
-                      "status": "success",
-                      "path": host + '/' + UPLOAD_FOLDER + '/' + path
-                      }
+            result = {
+                # "code": 200,
+                # "status": "success",
+                "image_path": path
+            }
             return flask.jsonify(data=result)
         else:
-            result = {"code": 0,
-                      "status": "failed",
-                      "reason": "格式错误，请重试"
-                      }
-            return flask.jsonify(data=result)
+            # result = {
+            # "code": 0,
+            # "status": "failed",
+            #          "error_reason": "格式错误，请重试"
+            #         }
+            return "格式错误，请重试", 500
+    return "403 Forbidden", 403
+
+
+# 批量上传图片
+@app.route('/image/multiuploads', methods=['POST'])
+def multiuploads():
+    fn = time.strftime('%Y%m%d%H%M%S')
+    image_dict = []
+    uploaded_files = request.files.getlist('file[]')
+    filenames = []
+    file = request.files.getlist('file')
+    if request.method == 'POST':
+        for file in file:
+            if file and allowed_file(file.filename):
+                # secure_filename方法会去掉文件名中的中文
+                file_name = secure_filename(file.filename)
+                # ext 取后缀
+                ext = os.path.splitext(file_name)[1]
+                # 定义文件名，年月日时分秒随机数
+                fn = time.strftime('%Y%m%d%H%M%S')
+                fn = fn + '_%d' % random.randint(0, 10000)
+                fn_new = fn + ext
+                file_name = fn_new
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_name))
+                path = file_name
+                # filenames.append(file_name)
+                # image_path = host + '/image/upload_list' + '/' + path
+                image_dict.append(path)
+            else:
+            	return "格式错误，请重试", 500
+        return flask.jsonify(image_list_path=image_dict)
     return "403 Forbidden", 403
 
 
 # 查看图片
-@app.route("/image/<imageId>")
+@app.route("/image/upload_list/<imageId>")
 def get_frame(imageId):
     # 图片上传保存的路径
-    with open(r'D:/study/1/test/upload/image/{}'.format(imageId), 'rb') as f:
+    with open(r'/data/server/image/complaint/{}'.format(imageId), 'rb') as f:
         image = f.read()
         resp = Response(image, mimetype="image/jpg")
         return resp
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # server = pywsgi.WSGIServer(('0.0.0.0', 5000), app)
+    # server.serve_forever()
+    # server = make_server('', 8080, app)
+    # server.serve_forever()
+    # app.run(host='0.0.0.0', port=5000, debug=True)
+    http_server = pywsgi.WSGIServer(('127.0.0.1', int(8080)), app)
+    http_server.serve_forever()
+    app.run(threaded=True)
