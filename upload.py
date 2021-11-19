@@ -15,9 +15,8 @@ app = Flask(__name__)
 host = 'http://127.0.0.1'
 
 # 设置图片保存文件夹
-UPLOAD_FOLDER = '/data/server/image/complaint/'
 basepath = os.path.dirname(__file__)
-# UPLOAD_FOLDER = 'image'
+UPLOAD_FOLDER = 'image'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['JSON_SORT_KEYS'] = False
 
