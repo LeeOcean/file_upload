@@ -4,20 +4,12 @@
 # 文件名称 : upload.py
 
 
-from gevent import monkey
-from gevent.pywsgi import WSGIServer
-
-# 下面这句不加也能启动服务，但是你会发现Flask还是单线程，在一个请求未返回时，其他请求也会阻塞，所以请添加这句
-monkey.patch_all()
 import flask
 from flask import Flask, Response, request, render_template
 from werkzeug.utils import secure_filename
-from gevent import pywsgi
-from wsgiref.simple_server import make_server
 import os
 import time
 import random
-import platform
 
 app = Flask(__name__)
 host = 'http://127.0.0.1'
@@ -108,7 +100,7 @@ def multiuploads():
                 # image_path = host + '/image/upload_list' + '/' + path
                 image_dict.append(path)
             else:
-            	return "格式错误，请重试", 500
+                return "格式错误，请重试", 500
         return flask.jsonify(image_list_path=image_dict)
     return "403 Forbidden", 403
 
@@ -124,11 +116,4 @@ def get_frame(imageId):
 
 
 if __name__ == "__main__":
-    # server = pywsgi.WSGIServer(('0.0.0.0', 5000), app)
-    # server.serve_forever()
-    # server = make_server('', 8080, app)
-    # server.serve_forever()
-    # app.run(host='0.0.0.0', port=5000, debug=True)
-    http_server = pywsgi.WSGIServer(('127.0.0.1', int(8080)), app)
-    http_server.serve_forever()
     app.run(threaded=True)
